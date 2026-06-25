@@ -6,6 +6,8 @@
 
 The project is deliberately closer to a recipe catalog than a framework. You can copy one shader folder into an existing game, or use the small optional loader included in the repository. No runtime dependency is required.
 
+[Live gallery](https://omori0219.github.io/love2d-shader-kit/)
+
 - Standalone, single-pass shader files
 - Sprite, screen, color, and transition effects
 - Interactive desktop gallery: `love .`
