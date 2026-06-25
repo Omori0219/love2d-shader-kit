@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "dissolve",
+  "name": "Dissolve",
+  "summary": "Reveals or removes a sprite with a noisy glowing edge.",
+  "description": "Uses animated value noise as a threshold mask. A colored edge follows the dissolve boundary, making the effect suitable for spawning, destruction, teleportation, and magical transitions.",
+  "category": "sprite",
+  "target": "sprite",
+  "tags": [
+    "sprite",
+    "dissolve",
+    "noise",
+    "transition"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "time",
+      "type": "float",
+      "default": 0.0,
+      "description": "Animation time in seconds.",
+      "source": "time"
+    },
+    {
+      "name": "progress",
+      "type": "float",
+      "default": 0.48,
+      "description": "Dissolve progress: 0 keeps the sprite, 1 removes it.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.02
+      }
+    },
+    {
+      "name": "noiseScale",
+      "type": "float",
+      "default": 9.0,
+      "description": "Scale of the procedural noise pattern.",
+      "control": {
+        "min": 2.0,
+        "max": 24.0,
+        "step": 0.5
+      }
+    },
+    {
+      "name": "softness",
+      "type": "float",
+      "default": 0.035,
+      "description": "Softness of the alpha boundary.",
+      "control": {
+        "min": 0.001,
+        "max": 0.15,
+        "step": 0.005
+      }
+    },
+    {
+      "name": "edgeWidth",
+      "type": "float",
+      "default": 0.1,
+      "description": "Width of the colored dissolve edge.",
+      "control": {
+        "min": 0.01,
+        "max": 0.3,
+        "step": 0.01
+      }
+    },
+    {
+      "name": "edgeColor",
+      "type": "vec4",
+      "default": [
+        0.35,
+        0.95,
+        1.0,
+        1.0
+      ],
+      "description": "RGBA color of the dissolve edge."
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "color-replace",
+  "name": "Color Replace",
+  "summary": "Replaces a chosen source color with a new color using a soft tolerance.",
+  "description": "Measures RGB distance from a target color and blends matching pixels toward a replacement. It is a lightweight option for team colors, skin variants, and palette accents.",
+  "category": "sprite",
+  "target": "sprite",
+  "tags": [
+    "sprite",
+    "palette",
+    "recolor",
+    "variant"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "sourceColor",
+      "type": "vec4",
+      "default": [
+        0.2392,
+        0.8235,
+        0.9098,
+        1.0
+      ],
+      "description": "RGBA color to look for."
+    },
+    {
+      "name": "replacementColor",
+      "type": "vec4",
+      "default": [
+        1.0,
+        0.35,
+        0.6,
+        1.0
+      ],
+      "description": "RGBA replacement color."
+    },
+    {
+      "name": "tolerance",
+      "type": "float",
+      "default": 0.22,
+      "description": "Maximum RGB distance treated as a match.",
+      "control": {
+        "min": 0.0,
+        "max": 0.8,
+        "step": 0.01
+      }
+    },
+    {
+      "name": "softness",
+      "type": "float",
+      "default": 0.08,
+      "description": "Width of the soft transition around the tolerance.",
+      "control": {
+        "min": 0.0,
+        "max": 0.4,
+        "step": 0.01
+      }
+    },
+    {
+      "name": "amount",
+      "type": "float",
+      "default": 1.0,
+      "description": "Overall replacement strength.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05
+      }
+    }
+  ]
+}

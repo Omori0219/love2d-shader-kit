@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "film-grain",
+  "name": "Film Grain",
+  "summary": "Adds temporally animated monochrome grain to the scene.",
+  "description": "Generates deterministic screen-space noise at a configurable frame rate and applies it as luminance variation. The effect requires no noise texture.",
+  "category": "screen",
+  "target": "screen",
+  "tags": [
+    "screen",
+    "grain",
+    "noise",
+    "cinematic"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "time",
+      "type": "float",
+      "default": 0.0,
+      "description": "Animation time in seconds.",
+      "source": "time"
+    },
+    {
+      "name": "amount",
+      "type": "float",
+      "default": 0.1,
+      "description": "Maximum grain amplitude.",
+      "control": {
+        "min": 0.0,
+        "max": 0.5,
+        "step": 0.01
+      }
+    },
+    {
+      "name": "fps",
+      "type": "float",
+      "default": 18.0,
+      "description": "Rate at which the noise pattern changes.",
+      "control": {
+        "min": 1.0,
+        "max": 60.0,
+        "step": 1.0
+      }
+    }
+  ]
+}

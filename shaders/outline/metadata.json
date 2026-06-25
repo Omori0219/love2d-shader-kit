@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "outline",
+  "name": "Outline",
+  "summary": "Adds a clean outline around transparent sprites.",
+  "description": "Samples neighboring alpha values and fills transparent pixels that touch the sprite. It is useful for selection highlights, readable pixel art, and interactable objects.",
+  "category": "sprite",
+  "target": "sprite",
+  "tags": [
+    "sprite",
+    "outline",
+    "pixel-art",
+    "highlight"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [
+    "Keep transparent padding around the sprite so the outline has room to render.",
+    "Nearest filtering produces the crispest result for pixel art."
+  ],
+  "uniforms": [
+    {
+      "name": "texelSize",
+      "type": "vec2",
+      "default": [
+        0.0078125,
+        0.0078125
+      ],
+      "description": "Reciprocal width and height of the source texture.",
+      "source": "texture_texel_size"
+    },
+    {
+      "name": "outlineColor",
+      "type": "vec4",
+      "default": [
+        0.1059,
+        0.0863,
+        0.1804,
+        1.0
+      ],
+      "description": "RGBA color of the outline."
+    },
+    {
+      "name": "thickness",
+      "type": "float",
+      "default": 1.5,
+      "description": "Outline sampling distance in source pixels.",
+      "control": {
+        "min": 0.5,
+        "max": 4.0,
+        "step": 0.25
+      }
+    }
+  ]
+}

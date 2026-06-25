@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "vignette",
+  "name": "Vignette",
+  "summary": "Darkens or tints the edges of a rendered scene.",
+  "description": "Builds an aspect-correct radial mask around the screen center. Radius, softness, intensity, and tint are adjustable for subtle focus or dramatic tunnel vision.",
+  "category": "screen",
+  "target": "screen",
+  "tags": [
+    "screen",
+    "vignette",
+    "focus",
+    "post-process"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "aspect",
+      "type": "float",
+      "default": 1.7778,
+      "description": "Source width divided by source height.",
+      "source": "texture_aspect"
+    },
+    {
+      "name": "radius",
+      "type": "float",
+      "default": 0.68,
+      "description": "Distance from center where the vignette begins.",
+      "control": {
+        "min": 0.1,
+        "max": 1.2,
+        "step": 0.02
+      }
+    },
+    {
+      "name": "softness",
+      "type": "float",
+      "default": 0.38,
+      "description": "Width of the vignette transition.",
+      "control": {
+        "min": 0.01,
+        "max": 1.0,
+        "step": 0.02
+      }
+    },
+    {
+      "name": "intensity",
+      "type": "float",
+      "default": 0.72,
+      "description": "Blend strength of the vignette color.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05
+      }
+    },
+    {
+      "name": "vignetteColor",
+      "type": "vec4",
+      "default": [
+        0.0353,
+        0.0196,
+        0.0902,
+        1.0
+      ],
+      "description": "RGBA color applied at the edges."
+    }
+  ]
+}

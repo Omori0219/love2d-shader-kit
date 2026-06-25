@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LÖVE Shader Kit logo">
+  <defs>
+    <linearGradient id="g" x1="10" y1="8" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7cf5e9"/>
+      <stop offset=".52" stop-color="#3dd2e8"/>
+      <stop offset="1" stop-color="#ff5c93"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="#11112b" stroke="#ffffff" stroke-opacity=".13" stroke-width="2"/>
+  <path d="M20 18h15c8.3 0 15 6.7 15 15S43.3 48 35 48H20V18Z" fill="none" stroke="url(#g)" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M14 24h13v18H14z" fill="#09091b" stroke="#ffd166" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="20.5" cy="33" r="3" fill="#ff5c93"/>
+</svg>

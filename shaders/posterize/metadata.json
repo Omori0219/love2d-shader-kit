@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "posterize",
+  "name": "Posterize",
+  "summary": "Reduces each color channel to a configurable number of levels.",
+  "description": "Quantizes RGB channels independently while preserving alpha. It creates a compact retro palette look without requiring a lookup texture.",
+  "category": "color",
+  "target": "screen",
+  "tags": [
+    "color",
+    "posterize",
+    "palette",
+    "retro"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "levels",
+      "type": "float",
+      "default": 5.0,
+      "description": "Number of values retained per RGB channel.",
+      "control": {
+        "min": 2.0,
+        "max": 24.0,
+        "step": 1.0
+      }
+    },
+    {
+      "name": "amount",
+      "type": "float",
+      "default": 1.0,
+      "description": "Blend amount between the source and posterized color.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05
+      }
+    }
+  ]
+}

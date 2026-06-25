@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+*.love
+*.log
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+squashfs-root/
+love-*.AppImage

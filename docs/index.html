@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#09091b">
+  <meta name="description" content="Copy-ready, documented shaders for LÖVE 11.5.">
+  <meta property="og:title" content="LÖVE Shader Kit">
+  <meta property="og:description" content="Copy-ready, documented shaders for LÖVE 11.5.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/cover.png">
+  <title>LÖVE Shader Kit</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#catalog">Skip to catalog</a>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="LÖVE Shader Kit home">
+      <img src="assets/logo.svg" width="38" height="38" alt="">
+      <span>LÖVE Shader Kit</span>
+    </a>
+    <nav class="header-actions" aria-label="Primary navigation">
+      <a href="#catalog">Catalog</a>
+      <a class="repository-docs-link" href="#catalog">Docs</a>
+      <a id="repository-link" class="button button-secondary" href="#" hidden>GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">OPEN SOURCE · LÖVE 11.5</p>
+        <h1 id="hero-title">Shaders you can actually<br><span>copy into your game.</span></h1>
+        <p class="hero-description">A curated set of standalone LÖVE shaders with practical defaults, Lua usage snippets, uniform reference, and an interactive desktop demo.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#catalog">Browse shaders</a>
+          <a class="button button-secondary repository-docs-link" href="#catalog">Quick start</a>
+        </div>
+        <dl class="stats" aria-label="Catalog statistics">
+          <div><dt id="shader-count">—</dt><dd>shaders</dd></div>
+          <div><dt>1</dt><dd>pass each</dd></div>
+          <div><dt>MIT</dt><dd>licensed</dd></div>
+        </dl>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <img src="assets/cover.png" alt="" width="960" height="600">
+      </div>
+    </section>
+
+    <section id="catalog" class="catalog-section" aria-labelledby="catalog-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">CATALOG</p>
+          <h2 id="catalog-title">Find an effect, copy the code.</h2>
+        </div>
+        <p id="result-count" class="result-count" aria-live="polite"></p>
+      </div>
+
+      <div class="catalog-controls">
+        <label class="search-field">
+          <span class="sr-only">Search shaders</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.6-4.6m2.1-5.15a7.25 7.25 0 1 1-14.5 0 7.25 7.25 0 0 1 14.5 0Z"/></svg>
+          <input id="search" type="search" placeholder="Search by name, tag, or use…" autocomplete="off">
+        </label>
+        <div id="category-filters" class="filter-list" aria-label="Filter by category"></div>
+      </div>
+
+      <div id="shader-grid" class="shader-grid"></div>
+      <div id="empty-state" class="empty-state" hidden>
+        <h3>No shader matched that search.</h3>
+        <p>Try a broader term or clear the active category filter.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>LÖVE Shader Kit · Original code released under the MIT License.</p>
+  </footer>
+
+  <dialog id="shader-dialog" class="shader-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-shell">
+      <button id="dialog-close" class="icon-button dialog-close" aria-label="Close details">×</button>
+      <div class="dialog-preview-wrap">
+        <img id="dialog-preview" class="dialog-preview" alt="">
+        <div class="dialog-preview-overlay"></div>
+      </div>
+      <div class="dialog-content">
+        <div class="dialog-heading">
+          <p id="dialog-category" class="eyebrow"></p>
+          <h2 id="dialog-title"></h2>
+          <p id="dialog-description" class="dialog-description"></p>
+          <div id="dialog-tags" class="tag-list"></div>
+        </div>
+
+        <section class="detail-section" aria-labelledby="uniform-title">
+          <h3 id="uniform-title">Uniforms</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+              <tbody id="uniform-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="notes-section" class="detail-section" aria-labelledby="notes-title" hidden>
+          <h3 id="notes-title">Notes</h3>
+          <ul id="notes-list"></ul>
+        </section>
+
+        <section class="detail-section code-section" aria-labelledby="code-title">
+          <div class="code-heading">
+            <div>
+              <h3 id="code-title">Copy and use</h3>
+              <div class="code-tabs" role="tablist" aria-label="Code type">
+                <button class="code-tab active" role="tab" aria-selected="true" data-code-tab="shader">shader.glsl</button>
+                <button class="code-tab" role="tab" aria-selected="false" data-code-tab="usage">usage.lua</button>
+              </div>
+            </div>
+            <button id="copy-code" class="button button-secondary" type="button">Copy code</button>
+          </div>
+          <pre><code id="code-view"></code></pre>
+        </section>
+      </div>
+    </div>
+  </dialog>
+
+  <template id="shader-card-template">
+    <article class="shader-card">
+      <button class="card-open" type="button">
+        <span class="preview-frame"><img class="card-preview" loading="lazy" alt=""></span>
+        <span class="card-body">
+          <span class="card-meta"><span class="card-category"></span><span class="card-pass">1 PASS</span></span>
+          <span class="card-title"></span>
+          <span class="card-summary"></span>
+          <span class="card-footer"><span class="card-tags"></span><span class="card-arrow" aria-hidden="true">↗</span></span>
+        </span>
+      </button>
+    </article>
+  </template>
+
+  <script src="assets/app.js" defer></script>
+</body>
+</html>

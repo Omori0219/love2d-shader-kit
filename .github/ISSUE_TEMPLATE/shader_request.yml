@@ -1,0 +1,24 @@
+name: Shader request
+about: Suggest a broadly useful effect for the catalog.
+title: "[Shader request] "
+labels: [enhancement]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Effect name
+      placeholder: Palette swap
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Game use case
+      description: Explain where the effect is useful and whether it targets sprites or a Canvas.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Visual or technical references
+      description: Add links and state the license of any code reference. Images are welcome.

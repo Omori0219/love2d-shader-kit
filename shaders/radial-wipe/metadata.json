@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "id": "radial-wipe",
+  "name": "Radial Wipe",
+  "summary": "Reveals a rendered scene outward from a configurable center point.",
+  "description": "Masks the source by normalized radial distance and optionally colors the moving edge. It is a compact scene transition that requires only one Canvas.",
+  "category": "transition",
+  "target": "screen",
+  "tags": [
+    "transition",
+    "radial",
+    "wipe",
+    "reveal"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "progress",
+      "type": "float",
+      "default": 0.62,
+      "description": "Reveal progress from 0 to 1.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.02
+      }
+    },
+    {
+      "name": "softness",
+      "type": "float",
+      "default": 0.025,
+      "description": "Softness of the reveal boundary.",
+      "control": {
+        "min": 0.001,
+        "max": 0.2,
+        "step": 0.005
+      }
+    },
+    {
+      "name": "edgeWidth",
+      "type": "float",
+      "default": 0.06,
+      "description": "Width of the colored transition edge.",
+      "control": {
+        "min": 0.0,
+        "max": 0.25,
+        "step": 0.01
+      }
+    },
+    {
+      "name": "center",
+      "type": "vec2",
+      "default": [
+        0.5,
+        0.5
+      ],
+      "description": "Normalized center of the radial reveal."
+    },
+    {
+      "name": "edgeColor",
+      "type": "vec4",
+      "default": [
+        0.4,
+        0.96,
+        1.0,
+        1.0
+      ],
+      "description": "RGBA color of the moving edge."
+    }
+  ]
+}

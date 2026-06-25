@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "silhouette",
+  "name": "Silhouette",
+  "summary": "Recolors a sprite to a solid tint while preserving alpha detail.",
+  "description": "Replaces RGB values with a single configurable color and leaves the source alpha intact. It works for shadows, hidden enemies, interaction highlights, and monochrome UI icons.",
+  "category": "sprite",
+  "target": "sprite",
+  "tags": [
+    "sprite",
+    "silhouette",
+    "tint",
+    "mask"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "silhouetteColor",
+      "type": "vec4",
+      "default": [
+        0.15,
+        0.07,
+        0.3,
+        0.88
+      ],
+      "description": "RGBA silhouette color."
+    },
+    {
+      "name": "amount",
+      "type": "float",
+      "default": 1.0,
+      "description": "Blend amount between the source and silhouette.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05
+      }
+    }
+  ]
+}

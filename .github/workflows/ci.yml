@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate catalog
+        run: python3 scripts/validate.py
+
+      - name: Verify generated files
+        run: python3 scripts/build_catalog.py --check
+
+      - name: Check browser JavaScript syntax
+        run: node --check docs/assets/app.js
+
+  compile-shaders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install headless display dependencies
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri
+
+      - name: Download official LÖVE 11.5 AppImage
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage \
+            --output love.AppImage
+          chmod +x love.AppImage
+          ./love.AppImage --appimage-extract >/dev/null
+
+      - name: Compile every shader with LÖVE 11.5
+        env:
+          LOVE_SHADER_KIT_VALIDATE: "1"
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: xvfb-run -a ./squashfs-root/AppRun .

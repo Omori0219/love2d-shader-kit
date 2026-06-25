@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "id": "crt",
+  "name": "CRT",
+  "summary": "Combines barrel distortion, RGB separation, scanlines, and edge falloff.",
+  "description": "A compact single-pass CRT treatment intended for gameplay-sized Canvases. It deliberately favors predictable controls over physically exact display simulation.",
+  "category": "screen",
+  "target": "screen",
+  "tags": [
+    "screen",
+    "crt",
+    "retro",
+    "post-process"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "texelSize",
+      "type": "vec2",
+      "default": [
+        0.0015625,
+        0.0027778
+      ],
+      "description": "Reciprocal width and height of the source texture.",
+      "source": "texture_texel_size"
+    },
+    {
+      "name": "curvature",
+      "type": "float",
+      "default": 0.16,
+      "description": "Strength of barrel distortion.",
+      "control": {
+        "min": 0.0,
+        "max": 0.5,
+        "step": 0.01
+      }
+    },
+    {
+      "name": "scanlineStrength",
+      "type": "float",
+      "default": 0.18,
+      "description": "Brightness modulation from scanlines.",
+      "control": {
+        "min": 0.0,
+        "max": 0.7,
+        "step": 0.02
+      }
+    },
+    {
+      "name": "rgbOffset",
+      "type": "float",
+      "default": 1.4,
+      "description": "Horizontal RGB channel offset in source pixels.",
+      "control": {
+        "min": 0.0,
+        "max": 8.0,
+        "step": 0.2
+      }
+    },
+    {
+      "name": "vignetteStrength",
+      "type": "float",
+      "default": 0.48,
+      "description": "Darkening near the curved edges.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.02
+      }
+    }
+  ]
+}

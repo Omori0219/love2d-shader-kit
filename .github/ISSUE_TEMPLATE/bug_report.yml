@@ -1,0 +1,36 @@
+name: Bug report
+about: Report an incorrect effect, compilation error, or catalog problem.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to report a problem.
+  - type: input
+    id: shader
+    attributes:
+      label: Shader
+      description: Which shader or repository feature is affected?
+      placeholder: outline
+    validations:
+      required: true
+  - type: input
+    id: love-version
+    attributes:
+      label: LÖVE version and platform
+      placeholder: LÖVE 11.5, Windows 11
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include the smallest steps or project that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true

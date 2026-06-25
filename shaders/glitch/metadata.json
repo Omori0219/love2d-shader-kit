@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "glitch",
+  "name": "Glitch",
+  "summary": "Produces animated horizontal block shifts and an RGB split.",
+  "description": "Selects horizontal bands with time-varying noise, shifts those bands, and offsets color channels. It is suitable for UI interruptions, damaged screens, and digital transitions.",
+  "category": "screen",
+  "target": "screen",
+  "tags": [
+    "screen",
+    "glitch",
+    "rgb-split",
+    "digital"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "texelSize",
+      "type": "vec2",
+      "default": [
+        0.0015625,
+        0.0027778
+      ],
+      "description": "Reciprocal width and height of the source texture.",
+      "source": "texture_texel_size"
+    },
+    {
+      "name": "time",
+      "type": "float",
+      "default": 0.0,
+      "description": "Animation time in seconds.",
+      "source": "time"
+    },
+    {
+      "name": "amount",
+      "type": "float",
+      "default": 0.42,
+      "description": "Probability and strength of displaced bands.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.02
+      }
+    },
+    {
+      "name": "blockCount",
+      "type": "float",
+      "default": 28.0,
+      "description": "Approximate number of horizontal glitch bands.",
+      "control": {
+        "min": 4.0,
+        "max": 80.0,
+        "step": 1.0
+      }
+    },
+    {
+      "name": "speed",
+      "type": "float",
+      "default": 8.0,
+      "description": "Rate at which the block pattern changes.",
+      "control": {
+        "min": 0.0,
+        "max": 24.0,
+        "step": 0.5
+      }
+    },
+    {
+      "name": "rgbOffset",
+      "type": "float",
+      "default": 2.0,
+      "description": "Color channel offset in source pixels.",
+      "control": {
+        "min": 0.0,
+        "max": 12.0,
+        "step": 0.25
+      }
+    }
+  ]
+}

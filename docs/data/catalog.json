@@ -1,0 +1,1107 @@
+[
+  {
+    "id": "bloom",
+    "name": "Bloom",
+    "summary": "Adds a soft glow around bright areas in a single pass.",
+    "description": "Collects thresholded neighboring samples and adds them back to the source. It is intentionally compact; multi-pass downsampled bloom will be faster and smoother at larger radii.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "bloom",
+      "glow",
+      "post-process"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "texelSize",
+        "type": "vec2",
+        "default": [
+          0.0015625,
+          0.0027778
+        ],
+        "description": "Reciprocal width and height of the source texture.",
+        "source": "texture_texel_size"
+      },
+      {
+        "name": "threshold",
+        "type": "float",
+        "default": 0.62,
+        "description": "Luminance threshold that contributes to the glow.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.02
+        }
+      },
+      {
+        "name": "intensity",
+        "type": "float",
+        "default": 0.85,
+        "description": "Strength of the added glow.",
+        "control": {
+          "min": 0.0,
+          "max": 2.5,
+          "step": 0.05
+        }
+      },
+      {
+        "name": "radius",
+        "type": "float",
+        "default": 4.0,
+        "description": "Sampling radius in source pixels.",
+        "control": {
+          "min": 0.5,
+          "max": 16.0,
+          "step": 0.5
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Bloom\n// SPDX-License-Identifier: MIT\n\nextern vec2 texelSize;\nextern float threshold;\nextern float intensity;\nextern float radius;\n\nvec3 brightPart(vec4 sampleColor)\n{\n    float luminance = dot(sampleColor.rgb, vec3(0.2126, 0.7152, 0.0722));\n    float contribution = smoothstep(threshold, 1.0, luminance);\n    return sampleColor.rgb * contribution * sampleColor.a;\n}\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 base = Texel(tex, textureCoords);\n    vec2 offset = texelSize * radius;\n    vec3 glow = vec3(0.0);\n\n    glow += brightPart(Texel(tex, textureCoords + vec2( offset.x, 0.0))) * 0.16;\n    glow += brightPart(Texel(tex, textureCoords + vec2(-offset.x, 0.0))) * 0.16;\n    glow += brightPart(Texel(tex, textureCoords + vec2(0.0,  offset.y))) * 0.16;\n    glow += brightPart(Texel(tex, textureCoords + vec2(0.0, -offset.y))) * 0.16;\n    glow += brightPart(Texel(tex, textureCoords + vec2( offset.x,  offset.y))) * 0.09;\n    glow += brightPart(Texel(tex, textureCoords + vec2(-offset.x,  offset.y))) * 0.09;\n    glow += brightPart(Texel(tex, textureCoords + vec2( offset.x, -offset.y))) * 0.09;\n    glow += brightPart(Texel(tex, textureCoords + vec2(-offset.x, -offset.y))) * 0.09;\n\n    base.rgb += glow * intensity;\n    return base * color;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/bloom/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"texelSize\", {1 / canvas:getWidth(), 1 / canvas:getHeight()})\n    shader:send(\"threshold\", 0.62)\n    shader:send(\"intensity\", 0.85)\n    shader:send(\"radius\", 4.0)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/bloom.png"
+  },
+  {
+    "id": "chromatic-aberration",
+    "name": "Chromatic Aberration",
+    "summary": "Offsets red and blue channels for a lens-like color split.",
+    "description": "Samples the red and blue channels in opposite directions while retaining green from the center. It works as a subtle lens effect or a stronger impact and glitch cue.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "rgb-split",
+      "lens",
+      "impact"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "texelSize",
+        "type": "vec2",
+        "default": [
+          0.0015625,
+          0.0027778
+        ],
+        "description": "Reciprocal width and height of the source texture.",
+        "source": "texture_texel_size"
+      },
+      {
+        "name": "amount",
+        "type": "float",
+        "default": 4.0,
+        "description": "Channel separation in source pixels.",
+        "control": {
+          "min": 0.0,
+          "max": 20.0,
+          "step": 0.5
+        }
+      },
+      {
+        "name": "direction",
+        "type": "vec2",
+        "default": [
+          1.0,
+          0.25
+        ],
+        "description": "Direction of the channel separation."
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Chromatic Aberration\n// SPDX-License-Identifier: MIT\n\nextern vec2 texelSize;\nextern float amount;\nextern vec2 direction;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec2 offset = direction * texelSize * amount;\n    vec4 center = Texel(tex, textureCoords);\n    float red = Texel(tex, textureCoords + offset).r;\n    float blue = Texel(tex, textureCoords - offset).b;\n    return vec4(red, center.g, blue, center.a) * color;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/chromatic-aberration/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"texelSize\", {1 / canvas:getWidth(), 1 / canvas:getHeight()})\n    shader:send(\"amount\", 4.0)\n    shader:send(\"direction\", {1.0, 0.25})\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/chromatic-aberration.png"
+  },
+  {
+    "id": "color-replace",
+    "name": "Color Replace",
+    "summary": "Replaces a chosen source color with a new color using a soft tolerance.",
+    "description": "Measures RGB distance from a target color and blends matching pixels toward a replacement. It is a lightweight option for team colors, skin variants, and palette accents.",
+    "category": "sprite",
+    "target": "sprite",
+    "tags": [
+      "sprite",
+      "palette",
+      "recolor",
+      "variant"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "sourceColor",
+        "type": "vec4",
+        "default": [
+          0.2392,
+          0.8235,
+          0.9098,
+          1.0
+        ],
+        "description": "RGBA color to look for."
+      },
+      {
+        "name": "replacementColor",
+        "type": "vec4",
+        "default": [
+          1.0,
+          0.35,
+          0.6,
+          1.0
+        ],
+        "description": "RGBA replacement color."
+      },
+      {
+        "name": "tolerance",
+        "type": "float",
+        "default": 0.22,
+        "description": "Maximum RGB distance treated as a match.",
+        "control": {
+          "min": 0.0,
+          "max": 0.8,
+          "step": 0.01
+        }
+      },
+      {
+        "name": "softness",
+        "type": "float",
+        "default": 0.08,
+        "description": "Width of the soft transition around the tolerance.",
+        "control": {
+          "min": 0.0,
+          "max": 0.4,
+          "step": 0.01
+        }
+      },
+      {
+        "name": "amount",
+        "type": "float",
+        "default": 1.0,
+        "description": "Overall replacement strength.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.05
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Color Replace\n// SPDX-License-Identifier: MIT\n\nextern vec4 sourceColor;\nextern vec4 replacementColor;\nextern float tolerance;\nextern float softness;\nextern float amount;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float colorDistance = distance(pixel.rgb, sourceColor.rgb * color.rgb);\n    float matchAmount = 1.0 - smoothstep(tolerance, tolerance + max(softness, 0.0001), colorDistance);\n    matchAmount *= clamp(amount, 0.0, 1.0) * replacementColor.a;\n    pixel.rgb = mix(pixel.rgb, replacementColor.rgb * color.rgb, matchAmount);\n    return pixel;\n}\n",
+    "usageSource": "-- Assume `image` is a loaded love.graphics.Image.\n\nlocal shader = love.graphics.newShader(\"shaders/color-replace/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"sourceColor\", {0.2392, 0.8235, 0.9098, 1.0})\n    shader:send(\"replacementColor\", {1.0, 0.35, 0.6, 1.0})\n    shader:send(\"tolerance\", 0.22)\n    shader:send(\"softness\", 0.08)\n    shader:send(\"amount\", 1.0)\nend\n\nfunction love.draw()\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(image, 100, 100)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/color-replace.png"
+  },
+  {
+    "id": "crt",
+    "name": "CRT",
+    "summary": "Combines barrel distortion, RGB separation, scanlines, and edge falloff.",
+    "description": "A compact single-pass CRT treatment intended for gameplay-sized Canvases. It deliberately favors predictable controls over physically exact display simulation.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "crt",
+      "retro",
+      "post-process"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "texelSize",
+        "type": "vec2",
+        "default": [
+          0.0015625,
+          0.0027778
+        ],
+        "description": "Reciprocal width and height of the source texture.",
+        "source": "texture_texel_size"
+      },
+      {
+        "name": "curvature",
+        "type": "float",
+        "default": 0.16,
+        "description": "Strength of barrel distortion.",
+        "control": {
+          "min": 0.0,
+          "max": 0.5,
+          "step": 0.01
+        }
+      },
+      {
+        "name": "scanlineStrength",
+        "type": "float",
+        "default": 0.18,
+        "description": "Brightness modulation from scanlines.",
+        "control": {
+          "min": 0.0,
+          "max": 0.7,
+          "step": 0.02
+        }
+      },
+      {
+        "name": "rgbOffset",
+        "type": "float",
+        "default": 1.4,
+        "description": "Horizontal RGB channel offset in source pixels.",
+        "control": {
+          "min": 0.0,
+          "max": 8.0,
+          "step": 0.2
+        }
+      },
+      {
+        "name": "vignetteStrength",
+        "type": "float",
+        "default": 0.48,
+        "description": "Darkening near the curved edges.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.02
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — CRT\n// SPDX-License-Identifier: MIT\n\nextern vec2 texelSize;\nextern float curvature;\nextern float scanlineStrength;\nextern float rgbOffset;\nextern float vignetteStrength;\n\nvec2 curveUv(vec2 uv)\n{\n    vec2 centered = uv * 2.0 - 1.0;\n    float distortion = dot(centered, centered) * curvature;\n    centered *= 1.0 + distortion;\n    return centered * 0.5 + 0.5;\n}\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec2 uv = curveUv(textureCoords);\n    if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {\n        return vec4(0.015, 0.008, 0.025, 1.0) * color;\n    }\n\n    vec2 channelOffset = vec2(texelSize.x * rgbOffset, 0.0);\n    vec4 center = Texel(tex, uv);\n    float red = Texel(tex, uv + channelOffset).r;\n    float blue = Texel(tex, uv - channelOffset).b;\n    vec4 pixel = vec4(red, center.g, blue, center.a) * color;\n\n    float scan = 0.5 + 0.5 * sin(screenCoords.y * 3.14159265359);\n    pixel.rgb *= 1.0 - scanlineStrength * (1.0 - scan);\n\n    vec2 edge = uv * (1.0 - uv);\n    float vignette = pow(clamp(edge.x * edge.y * 16.0, 0.0, 1.0), 0.22);\n    pixel.rgb *= mix(1.0, vignette, clamp(vignetteStrength, 0.0, 1.0));\n    return pixel;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/crt/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"texelSize\", {1 / canvas:getWidth(), 1 / canvas:getHeight()})\n    shader:send(\"curvature\", 0.16)\n    shader:send(\"scanlineStrength\", 0.18)\n    shader:send(\"rgbOffset\", 1.4)\n    shader:send(\"vignetteStrength\", 0.48)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/crt.png"
+  },
+  {
+    "id": "directional-blur",
+    "name": "Directional Blur",
+    "summary": "Applies a lightweight nine-tap blur along a chosen direction.",
+    "description": "Samples the source along a direction vector with Gaussian-like weights. Run it twice with horizontal and vertical directions when a fuller blur is needed.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "blur",
+      "motion",
+      "post-process"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "texelSize",
+        "type": "vec2",
+        "default": [
+          0.0015625,
+          0.0027778
+        ],
+        "description": "Reciprocal width and height of the source texture.",
+        "source": "texture_texel_size"
+      },
+      {
+        "name": "direction",
+        "type": "vec2",
+        "default": [
+          1.0,
+          0.25
+        ],
+        "description": "Blur direction before normalization."
+      },
+      {
+        "name": "radius",
+        "type": "float",
+        "default": 4.0,
+        "description": "Sampling radius in source pixels.",
+        "control": {
+          "min": 0.0,
+          "max": 16.0,
+          "step": 0.5
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Directional Blur\n// SPDX-License-Identifier: MIT\n\nextern vec2 texelSize;\nextern vec2 direction;\nextern float radius;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec2 safeDirection = direction;\n    float directionLength = length(safeDirection);\n    if (directionLength > 0.0001) {\n        safeDirection /= directionLength;\n    }\n    vec2 stepOffset = safeDirection * texelSize * radius;\n\n    vec4 sum = Texel(tex, textureCoords) * 0.2270270270;\n    sum += Texel(tex, textureCoords + stepOffset * 0.25) * 0.1945945946;\n    sum += Texel(tex, textureCoords - stepOffset * 0.25) * 0.1945945946;\n    sum += Texel(tex, textureCoords + stepOffset * 0.50) * 0.1216216216;\n    sum += Texel(tex, textureCoords - stepOffset * 0.50) * 0.1216216216;\n    sum += Texel(tex, textureCoords + stepOffset * 0.75) * 0.0540540541;\n    sum += Texel(tex, textureCoords - stepOffset * 0.75) * 0.0540540541;\n    sum += Texel(tex, textureCoords + stepOffset) * 0.0162162162;\n    sum += Texel(tex, textureCoords - stepOffset) * 0.0162162162;\n    return sum * color;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/directional-blur/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"texelSize\", {1 / canvas:getWidth(), 1 / canvas:getHeight()})\n    shader:send(\"direction\", {1.0, 0.25})\n    shader:send(\"radius\", 4.0)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/directional-blur.png"
+  },
+  {
+    "id": "dissolve",
+    "name": "Dissolve",
+    "summary": "Reveals or removes a sprite with a noisy glowing edge.",
+    "description": "Uses animated value noise as a threshold mask. A colored edge follows the dissolve boundary, making the effect suitable for spawning, destruction, teleportation, and magical transitions.",
+    "category": "sprite",
+    "target": "sprite",
+    "tags": [
+      "sprite",
+      "dissolve",
+      "noise",
+      "transition"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "time",
+        "type": "float",
+        "default": 0.0,
+        "description": "Animation time in seconds.",
+        "source": "time"
+      },
+      {
+        "name": "progress",
+        "type": "float",
+        "default": 0.48,
+        "description": "Dissolve progress: 0 keeps the sprite, 1 removes it.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.02
+        }
+      },
+      {
+        "name": "noiseScale",
+        "type": "float",
+        "default": 9.0,
+        "description": "Scale of the procedural noise pattern.",
+        "control": {
+          "min": 2.0,
+          "max": 24.0,
+          "step": 0.5
+        }
+      },
+      {
+        "name": "softness",
+        "type": "float",
+        "default": 0.035,
+        "description": "Softness of the alpha boundary.",
+        "control": {
+          "min": 0.001,
+          "max": 0.15,
+          "step": 0.005
+        }
+      },
+      {
+        "name": "edgeWidth",
+        "type": "float",
+        "default": 0.1,
+        "description": "Width of the colored dissolve edge.",
+        "control": {
+          "min": 0.01,
+          "max": 0.3,
+          "step": 0.01
+        }
+      },
+      {
+        "name": "edgeColor",
+        "type": "vec4",
+        "default": [
+          0.35,
+          0.95,
+          1.0,
+          1.0
+        ],
+        "description": "RGBA color of the dissolve edge."
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Dissolve\n// SPDX-License-Identifier: MIT\n\nextern float time;\nextern float progress;\nextern float noiseScale;\nextern float softness;\nextern float edgeWidth;\nextern vec4 edgeColor;\n\nfloat hash21(vec2 p)\n{\n    p = fract(p * vec2(123.34, 456.21));\n    p += dot(p, p + 45.32);\n    return fract(p.x * p.y);\n}\n\nfloat valueNoise(vec2 p)\n{\n    vec2 i = floor(p);\n    vec2 f = fract(p);\n    f = f * f * (3.0 - 2.0 * f);\n\n    float a = hash21(i);\n    float b = hash21(i + vec2(1.0, 0.0));\n    float c = hash21(i + vec2(0.0, 1.0));\n    float d = hash21(i + vec2(1.0, 1.0));\n    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);\n}\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float noiseValue = valueNoise(textureCoords * noiseScale + vec2(time * 0.12, -time * 0.08));\n    float threshold = mix(-softness, 1.0 + softness, clamp(progress, 0.0, 1.0));\n    float visible = smoothstep(threshold - softness, threshold + softness, noiseValue);\n    float edge = 1.0 - smoothstep(0.0, max(edgeWidth, 0.0001), abs(noiseValue - threshold));\n    edge *= step(threshold, noiseValue) * edgeColor.a;\n\n    pixel.rgb = mix(pixel.rgb, edgeColor.rgb * color.rgb, edge);\n    pixel.a *= visible;\n    return pixel;\n}\n",
+    "usageSource": "-- Assume `image` is a loaded love.graphics.Image.\n\nlocal shader = love.graphics.newShader(\"shaders/dissolve/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"time\", love.timer.getTime())\n    shader:send(\"progress\", 0.48)\n    shader:send(\"noiseScale\", 9.0)\n    shader:send(\"softness\", 0.035)\n    shader:send(\"edgeWidth\", 0.1)\n    shader:send(\"edgeColor\", {0.35, 0.95, 1.0, 1.0})\nend\n\nfunction love.draw()\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(image, 100, 100)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/dissolve.png"
+  },
+  {
+    "id": "film-grain",
+    "name": "Film Grain",
+    "summary": "Adds temporally animated monochrome grain to the scene.",
+    "description": "Generates deterministic screen-space noise at a configurable frame rate and applies it as luminance variation. The effect requires no noise texture.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "grain",
+      "noise",
+      "cinematic"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "time",
+        "type": "float",
+        "default": 0.0,
+        "description": "Animation time in seconds.",
+        "source": "time"
+      },
+      {
+        "name": "amount",
+        "type": "float",
+        "default": 0.1,
+        "description": "Maximum grain amplitude.",
+        "control": {
+          "min": 0.0,
+          "max": 0.5,
+          "step": 0.01
+        }
+      },
+      {
+        "name": "fps",
+        "type": "float",
+        "default": 18.0,
+        "description": "Rate at which the noise pattern changes.",
+        "control": {
+          "min": 1.0,
+          "max": 60.0,
+          "step": 1.0
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Film Grain\n// SPDX-License-Identifier: MIT\n\nextern float time;\nextern float amount;\nextern float fps;\n\nfloat hash21(vec2 p)\n{\n    p = fract(p * vec2(123.34, 456.21));\n    p += dot(p, p + 45.32);\n    return fract(p.x * p.y);\n}\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float frame = floor(time * max(fps, 1.0));\n    float noiseValue = hash21(screenCoords + vec2(frame * 17.0, frame * 31.0)) - 0.5;\n    pixel.rgb = clamp(pixel.rgb + noiseValue * amount, 0.0, 1.0);\n    return pixel;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/film-grain/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"time\", love.timer.getTime())\n    shader:send(\"amount\", 0.1)\n    shader:send(\"fps\", 18.0)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/film-grain.png"
+  },
+  {
+    "id": "glitch",
+    "name": "Glitch",
+    "summary": "Produces animated horizontal block shifts and an RGB split.",
+    "description": "Selects horizontal bands with time-varying noise, shifts those bands, and offsets color channels. It is suitable for UI interruptions, damaged screens, and digital transitions.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "glitch",
+      "rgb-split",
+      "digital"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "texelSize",
+        "type": "vec2",
+        "default": [
+          0.0015625,
+          0.0027778
+        ],
+        "description": "Reciprocal width and height of the source texture.",
+        "source": "texture_texel_size"
+      },
+      {
+        "name": "time",
+        "type": "float",
+        "default": 0.0,
+        "description": "Animation time in seconds.",
+        "source": "time"
+      },
+      {
+        "name": "amount",
+        "type": "float",
+        "default": 0.42,
+        "description": "Probability and strength of displaced bands.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.02
+        }
+      },
+      {
+        "name": "blockCount",
+        "type": "float",
+        "default": 28.0,
+        "description": "Approximate number of horizontal glitch bands.",
+        "control": {
+          "min": 4.0,
+          "max": 80.0,
+          "step": 1.0
+        }
+      },
+      {
+        "name": "speed",
+        "type": "float",
+        "default": 8.0,
+        "description": "Rate at which the block pattern changes.",
+        "control": {
+          "min": 0.0,
+          "max": 24.0,
+          "step": 0.5
+        }
+      },
+      {
+        "name": "rgbOffset",
+        "type": "float",
+        "default": 2.0,
+        "description": "Color channel offset in source pixels.",
+        "control": {
+          "min": 0.0,
+          "max": 12.0,
+          "step": 0.25
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Glitch\n// SPDX-License-Identifier: MIT\n\nextern vec2 texelSize;\nextern float time;\nextern float amount;\nextern float blockCount;\nextern float speed;\nextern float rgbOffset;\n\nfloat hash21(vec2 p)\n{\n    p = fract(p * vec2(123.34, 456.21));\n    p += dot(p, p + 45.32);\n    return fract(p.x * p.y);\n}\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    float frame = floor(time * max(speed, 0.001));\n    float band = floor(textureCoords.y * max(blockCount, 1.0));\n    float randomValue = hash21(vec2(band, frame));\n    float active = step(1.0 - clamp(amount, 0.0, 1.0), randomValue);\n    float shift = (hash21(vec2(band + 17.0, frame + 9.0)) - 0.5) * 0.16 * amount * active;\n    vec2 shiftedUv = clamp(textureCoords + vec2(shift, 0.0), vec2(0.0), vec2(1.0));\n    vec2 channelOffset = vec2(texelSize.x * rgbOffset * (0.35 + active), 0.0);\n\n    float red = Texel(tex, clamp(shiftedUv + channelOffset, vec2(0.0), vec2(1.0))).r;\n    vec4 center = Texel(tex, shiftedUv);\n    float blue = Texel(tex, clamp(shiftedUv - channelOffset, vec2(0.0), vec2(1.0))).b;\n    return vec4(red, center.g, blue, center.a) * color;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/glitch/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"texelSize\", {1 / canvas:getWidth(), 1 / canvas:getHeight()})\n    shader:send(\"time\", love.timer.getTime())\n    shader:send(\"amount\", 0.42)\n    shader:send(\"blockCount\", 28.0)\n    shader:send(\"speed\", 8.0)\n    shader:send(\"rgbOffset\", 2.0)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/glitch.png"
+  },
+  {
+    "id": "grayscale",
+    "name": "Grayscale",
+    "summary": "Blends a texture or scene toward perceptual grayscale.",
+    "description": "Uses Rec. 709 luminance weights and an adjustable blend amount. It is useful for pause states, disabled UI, flashbacks, and selective mood changes.",
+    "category": "color",
+    "target": "screen",
+    "tags": [
+      "color",
+      "grayscale",
+      "desaturate",
+      "post-process"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "amount",
+        "type": "float",
+        "default": 1.0,
+        "description": "Blend amount from full color to grayscale.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.05
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Grayscale\n// SPDX-License-Identifier: MIT\n\nextern float amount;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float luminance = dot(pixel.rgb, vec3(0.2126, 0.7152, 0.0722));\n    pixel.rgb = mix(pixel.rgb, vec3(luminance), clamp(amount, 0.0, 1.0));\n    return pixel;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/grayscale/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"amount\", 1.0)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/grayscale.png"
+  },
+  {
+    "id": "hit-flash",
+    "name": "Hit Flash",
+    "summary": "Flashes a sprite toward a chosen color without changing its silhouette.",
+    "description": "Blends opaque pixels toward a configurable flash color while preserving source alpha. This is a compact feedback effect for damage, pickups, and invulnerability frames.",
+    "category": "sprite",
+    "target": "sprite",
+    "tags": [
+      "sprite",
+      "combat",
+      "feedback",
+      "flash"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "flashColor",
+        "type": "vec4",
+        "default": [
+          1.0,
+          0.94,
+          0.72,
+          1.0
+        ],
+        "description": "RGBA color used for the flash."
+      },
+      {
+        "name": "amount",
+        "type": "float",
+        "default": 0.78,
+        "description": "Blend amount from the source color to the flash color.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.05
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Hit Flash\n// SPDX-License-Identifier: MIT\n\nextern vec4 flashColor;\nextern float amount;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float blendAmount = clamp(amount, 0.0, 1.0) * flashColor.a;\n    pixel.rgb = mix(pixel.rgb, flashColor.rgb * color.rgb, blendAmount);\n    return pixel;\n}\n",
+    "usageSource": "-- Assume `image` is a loaded love.graphics.Image.\n\nlocal shader = love.graphics.newShader(\"shaders/hit-flash/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"flashColor\", {1.0, 0.94, 0.72, 1.0})\n    shader:send(\"amount\", 0.78)\nend\n\nfunction love.draw()\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(image, 100, 100)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/hit-flash.png"
+  },
+  {
+    "id": "outline",
+    "name": "Outline",
+    "summary": "Adds a clean outline around transparent sprites.",
+    "description": "Samples neighboring alpha values and fills transparent pixels that touch the sprite. It is useful for selection highlights, readable pixel art, and interactable objects.",
+    "category": "sprite",
+    "target": "sprite",
+    "tags": [
+      "sprite",
+      "outline",
+      "pixel-art",
+      "highlight"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [
+      "Keep transparent padding around the sprite so the outline has room to render.",
+      "Nearest filtering produces the crispest result for pixel art."
+    ],
+    "uniforms": [
+      {
+        "name": "texelSize",
+        "type": "vec2",
+        "default": [
+          0.0078125,
+          0.0078125
+        ],
+        "description": "Reciprocal width and height of the source texture.",
+        "source": "texture_texel_size"
+      },
+      {
+        "name": "outlineColor",
+        "type": "vec4",
+        "default": [
+          0.1059,
+          0.0863,
+          0.1804,
+          1.0
+        ],
+        "description": "RGBA color of the outline."
+      },
+      {
+        "name": "thickness",
+        "type": "float",
+        "default": 1.5,
+        "description": "Outline sampling distance in source pixels.",
+        "control": {
+          "min": 0.5,
+          "max": 4.0,
+          "step": 0.25
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Outline\n// SPDX-License-Identifier: MIT\n\nextern vec2 texelSize;\nextern vec4 outlineColor;\nextern float thickness;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 base = Texel(tex, textureCoords) * color;\n    if (base.a > 0.001) {\n        return base;\n    }\n\n    vec2 offset = texelSize * max(thickness, 0.0);\n    float alpha = 0.0;\n    alpha = max(alpha, Texel(tex, textureCoords + vec2( offset.x, 0.0)).a);\n    alpha = max(alpha, Texel(tex, textureCoords + vec2(-offset.x, 0.0)).a);\n    alpha = max(alpha, Texel(tex, textureCoords + vec2(0.0,  offset.y)).a);\n    alpha = max(alpha, Texel(tex, textureCoords + vec2(0.0, -offset.y)).a);\n    alpha = max(alpha, Texel(tex, textureCoords + vec2( offset.x,  offset.y)).a);\n    alpha = max(alpha, Texel(tex, textureCoords + vec2(-offset.x,  offset.y)).a);\n    alpha = max(alpha, Texel(tex, textureCoords + vec2( offset.x, -offset.y)).a);\n    alpha = max(alpha, Texel(tex, textureCoords + vec2(-offset.x, -offset.y)).a);\n\n    return vec4(outlineColor.rgb * color.rgb, alpha * outlineColor.a * color.a);\n}\n",
+    "usageSource": "-- Assume `image` is a loaded love.graphics.Image.\n\nlocal shader = love.graphics.newShader(\"shaders/outline/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"texelSize\", {1 / image:getWidth(), 1 / image:getHeight()})\n    shader:send(\"outlineColor\", {0.1059, 0.0863, 0.1804, 1.0})\n    shader:send(\"thickness\", 1.5)\nend\n\nfunction love.draw()\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(image, 100, 100)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/outline.png"
+  },
+  {
+    "id": "pixelate",
+    "name": "Pixelate",
+    "summary": "Reduces a texture or rendered scene into configurable pixel blocks.",
+    "description": "Snaps texture coordinates to the center of larger pixel cells. Apply it to a Canvas for screen-wide transitions, low-resolution simulation, or stylized censorship.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "pixelate",
+      "retro",
+      "transition"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "texelSize",
+        "type": "vec2",
+        "default": [
+          0.0015625,
+          0.0027778
+        ],
+        "description": "Reciprocal width and height of the source texture.",
+        "source": "texture_texel_size"
+      },
+      {
+        "name": "pixelSize",
+        "type": "float",
+        "default": 7.0,
+        "description": "Block size in source pixels.",
+        "control": {
+          "min": 1.0,
+          "max": 48.0,
+          "step": 1.0
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Pixelate\n// SPDX-License-Identifier: MIT\n\nextern vec2 texelSize;\nextern float pixelSize;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec2 cell = texelSize * max(pixelSize, 1.0);\n    vec2 uv = (floor(textureCoords / cell) + 0.5) * cell;\n    return Texel(tex, uv) * color;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/pixelate/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"texelSize\", {1 / canvas:getWidth(), 1 / canvas:getHeight()})\n    shader:send(\"pixelSize\", 7.0)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/pixelate.png"
+  },
+  {
+    "id": "posterize",
+    "name": "Posterize",
+    "summary": "Reduces each color channel to a configurable number of levels.",
+    "description": "Quantizes RGB channels independently while preserving alpha. It creates a compact retro palette look without requiring a lookup texture.",
+    "category": "color",
+    "target": "screen",
+    "tags": [
+      "color",
+      "posterize",
+      "palette",
+      "retro"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "levels",
+        "type": "float",
+        "default": 5.0,
+        "description": "Number of values retained per RGB channel.",
+        "control": {
+          "min": 2.0,
+          "max": 24.0,
+          "step": 1.0
+        }
+      },
+      {
+        "name": "amount",
+        "type": "float",
+        "default": 1.0,
+        "description": "Blend amount between the source and posterized color.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.05
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Posterize\n// SPDX-License-Identifier: MIT\n\nextern float levels;\nextern float amount;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float safeLevels = max(floor(levels + 0.5), 2.0);\n    vec3 quantized = floor(pixel.rgb * (safeLevels - 1.0) + 0.5) / (safeLevels - 1.0);\n    pixel.rgb = mix(pixel.rgb, quantized, clamp(amount, 0.0, 1.0));\n    return pixel;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/posterize/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"levels\", 5.0)\n    shader:send(\"amount\", 1.0)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/posterize.png"
+  },
+  {
+    "id": "radial-wipe",
+    "name": "Radial Wipe",
+    "summary": "Reveals a rendered scene outward from a configurable center point.",
+    "description": "Masks the source by normalized radial distance and optionally colors the moving edge. It is a compact scene transition that requires only one Canvas.",
+    "category": "transition",
+    "target": "screen",
+    "tags": [
+      "transition",
+      "radial",
+      "wipe",
+      "reveal"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "progress",
+        "type": "float",
+        "default": 0.62,
+        "description": "Reveal progress from 0 to 1.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.02
+        }
+      },
+      {
+        "name": "softness",
+        "type": "float",
+        "default": 0.025,
+        "description": "Softness of the reveal boundary.",
+        "control": {
+          "min": 0.001,
+          "max": 0.2,
+          "step": 0.005
+        }
+      },
+      {
+        "name": "edgeWidth",
+        "type": "float",
+        "default": 0.06,
+        "description": "Width of the colored transition edge.",
+        "control": {
+          "min": 0.0,
+          "max": 0.25,
+          "step": 0.01
+        }
+      },
+      {
+        "name": "center",
+        "type": "vec2",
+        "default": [
+          0.5,
+          0.5
+        ],
+        "description": "Normalized center of the radial reveal."
+      },
+      {
+        "name": "edgeColor",
+        "type": "vec4",
+        "default": [
+          0.4,
+          0.96,
+          1.0,
+          1.0
+        ],
+        "description": "RGBA color of the moving edge."
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Radial Wipe\n// SPDX-License-Identifier: MIT\n\nextern float progress;\nextern float softness;\nextern float edgeWidth;\nextern vec2 center;\nextern vec4 edgeColor;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float maxDistance = max(max(length(center), length(vec2(1.0, 0.0) - center)),\n                            max(length(vec2(0.0, 1.0) - center), length(vec2(1.0) - center)));\n    float radialDistance = length(textureCoords - center) / max(maxDistance, 0.0001);\n    float boundary = clamp(progress, 0.0, 1.0);\n    float visible = 1.0 - smoothstep(boundary, boundary + max(softness, 0.0001), radialDistance);\n    float edge = 1.0 - smoothstep(edgeWidth, edgeWidth + max(softness, 0.0001), abs(radialDistance - boundary));\n    edge *= visible * edgeColor.a;\n\n    pixel.rgb = mix(pixel.rgb, edgeColor.rgb, edge);\n    pixel.a *= visible;\n    return pixel;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/radial-wipe/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"progress\", 0.62)\n    shader:send(\"softness\", 0.025)\n    shader:send(\"edgeWidth\", 0.06)\n    shader:send(\"center\", {0.5, 0.5})\n    shader:send(\"edgeColor\", {0.4, 0.96, 1.0, 1.0})\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/radial-wipe.png"
+  },
+  {
+    "id": "scanlines",
+    "name": "Scanlines",
+    "summary": "Adds animated horizontal scanlines to a rendered scene.",
+    "description": "Modulates brightness with a screen-space sine wave and a subtle moving phase. It can be used alone or layered with other post-processing for retro display effects.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "scanlines",
+      "retro",
+      "display"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "time",
+        "type": "float",
+        "default": 0.0,
+        "description": "Animation time in seconds.",
+        "source": "time"
+      },
+      {
+        "name": "spacing",
+        "type": "float",
+        "default": 3.0,
+        "description": "Distance between scanline peaks in screen pixels.",
+        "control": {
+          "min": 1.5,
+          "max": 12.0,
+          "step": 0.25
+        }
+      },
+      {
+        "name": "strength",
+        "type": "float",
+        "default": 0.28,
+        "description": "Maximum brightness reduction.",
+        "control": {
+          "min": 0.0,
+          "max": 0.9,
+          "step": 0.02
+        }
+      },
+      {
+        "name": "speed",
+        "type": "float",
+        "default": 1.3,
+        "description": "Vertical phase animation speed.",
+        "control": {
+          "min": 0.0,
+          "max": 8.0,
+          "step": 0.1
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Scanlines\n// SPDX-License-Identifier: MIT\n\nextern float time;\nextern float spacing;\nextern float strength;\nextern float speed;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float phase = (screenCoords.y + time * speed * spacing) * 6.28318530718 / max(spacing, 0.001);\n    float scan = 0.5 + 0.5 * sin(phase);\n    pixel.rgb *= 1.0 - clamp(strength, 0.0, 1.0) * (1.0 - scan);\n    return pixel;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/scanlines/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"time\", love.timer.getTime())\n    shader:send(\"spacing\", 3.0)\n    shader:send(\"strength\", 0.28)\n    shader:send(\"speed\", 1.3)\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/scanlines.png"
+  },
+  {
+    "id": "silhouette",
+    "name": "Silhouette",
+    "summary": "Recolors a sprite to a solid tint while preserving alpha detail.",
+    "description": "Replaces RGB values with a single configurable color and leaves the source alpha intact. It works for shadows, hidden enemies, interaction highlights, and monochrome UI icons.",
+    "category": "sprite",
+    "target": "sprite",
+    "tags": [
+      "sprite",
+      "silhouette",
+      "tint",
+      "mask"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "silhouetteColor",
+        "type": "vec4",
+        "default": [
+          0.15,
+          0.07,
+          0.3,
+          0.88
+        ],
+        "description": "RGBA silhouette color."
+      },
+      {
+        "name": "amount",
+        "type": "float",
+        "default": 1.0,
+        "description": "Blend amount between the source and silhouette.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.05
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Silhouette\n// SPDX-License-Identifier: MIT\n\nextern vec4 silhouetteColor;\nextern float amount;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    float blendAmount = clamp(amount, 0.0, 1.0) * silhouetteColor.a;\n    pixel.rgb = mix(pixel.rgb, silhouetteColor.rgb * color.rgb, blendAmount);\n    return pixel;\n}\n",
+    "usageSource": "-- Assume `image` is a loaded love.graphics.Image.\n\nlocal shader = love.graphics.newShader(\"shaders/silhouette/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"silhouetteColor\", {0.15, 0.07, 0.3, 0.88})\n    shader:send(\"amount\", 1.0)\nend\n\nfunction love.draw()\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(image, 100, 100)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/silhouette.png"
+  },
+  {
+    "id": "vignette",
+    "name": "Vignette",
+    "summary": "Darkens or tints the edges of a rendered scene.",
+    "description": "Builds an aspect-correct radial mask around the screen center. Radius, softness, intensity, and tint are adjustable for subtle focus or dramatic tunnel vision.",
+    "category": "screen",
+    "target": "screen",
+    "tags": [
+      "screen",
+      "vignette",
+      "focus",
+      "post-process"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "aspect",
+        "type": "float",
+        "default": 1.7778,
+        "description": "Source width divided by source height.",
+        "source": "texture_aspect"
+      },
+      {
+        "name": "radius",
+        "type": "float",
+        "default": 0.68,
+        "description": "Distance from center where the vignette begins.",
+        "control": {
+          "min": 0.1,
+          "max": 1.2,
+          "step": 0.02
+        }
+      },
+      {
+        "name": "softness",
+        "type": "float",
+        "default": 0.38,
+        "description": "Width of the vignette transition.",
+        "control": {
+          "min": 0.01,
+          "max": 1.0,
+          "step": 0.02
+        }
+      },
+      {
+        "name": "intensity",
+        "type": "float",
+        "default": 0.72,
+        "description": "Blend strength of the vignette color.",
+        "control": {
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.05
+        }
+      },
+      {
+        "name": "vignetteColor",
+        "type": "vec4",
+        "default": [
+          0.0353,
+          0.0196,
+          0.0902,
+          1.0
+        ],
+        "description": "RGBA color applied at the edges."
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Vignette\n// SPDX-License-Identifier: MIT\n\nextern float aspect;\nextern float radius;\nextern float softness;\nextern float intensity;\nextern vec4 vignetteColor;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec4 pixel = Texel(tex, textureCoords) * color;\n    vec2 centered = textureCoords - vec2(0.5);\n    centered.x *= aspect;\n    float distanceFromCenter = length(centered);\n    float mask = smoothstep(radius, radius + max(softness, 0.0001), distanceFromCenter);\n    float blendAmount = mask * clamp(intensity, 0.0, 1.0) * vignetteColor.a;\n    pixel.rgb = mix(pixel.rgb, vignetteColor.rgb, blendAmount);\n    return pixel;\n}\n",
+    "usageSource": "-- Draw your scene to a Canvas first.\nlocal canvas = love.graphics.newCanvas()\n\nlocal function drawScene()\n    -- Draw the game world here.\nend\n\nlocal shader = love.graphics.newShader(\"shaders/vignette/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"aspect\", canvas:getWidth() / canvas:getHeight())\n    shader:send(\"radius\", 0.68)\n    shader:send(\"softness\", 0.38)\n    shader:send(\"intensity\", 0.72)\n    shader:send(\"vignetteColor\", {0.0353, 0.0196, 0.0902, 1.0})\nend\n\nfunction love.draw()\n    love.graphics.setCanvas(canvas)\n    love.graphics.clear()\n    drawScene()\n    love.graphics.setCanvas()\n\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(canvas)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/vignette.png"
+  },
+  {
+    "id": "wave",
+    "name": "Wave",
+    "summary": "Distorts a sprite with a smooth animated two-axis wave.",
+    "description": "Offsets texture coordinates with sine and cosine waves. The amplitude is expressed in source pixels, so the effect remains predictable across texture sizes.",
+    "category": "sprite",
+    "target": "sprite",
+    "tags": [
+      "sprite",
+      "distortion",
+      "wave",
+      "animation"
+    ],
+    "passes": 1,
+    "loveVersion": "11.5",
+    "license": "MIT",
+    "notes": [],
+    "uniforms": [
+      {
+        "name": "texelSize",
+        "type": "vec2",
+        "default": [
+          0.0078125,
+          0.0078125
+        ],
+        "description": "Reciprocal width and height of the source texture.",
+        "source": "texture_texel_size"
+      },
+      {
+        "name": "time",
+        "type": "float",
+        "default": 0.0,
+        "description": "Animation time in seconds.",
+        "source": "time"
+      },
+      {
+        "name": "amplitude",
+        "type": "float",
+        "default": 3.0,
+        "description": "Maximum displacement in source pixels.",
+        "control": {
+          "min": 0.0,
+          "max": 12.0,
+          "step": 0.25
+        }
+      },
+      {
+        "name": "frequency",
+        "type": "float",
+        "default": 18.0,
+        "description": "Number of wave oscillations across the texture.",
+        "control": {
+          "min": 2.0,
+          "max": 40.0,
+          "step": 1.0
+        }
+      },
+      {
+        "name": "speed",
+        "type": "float",
+        "default": 2.2,
+        "description": "Animation speed.",
+        "control": {
+          "min": 0.0,
+          "max": 8.0,
+          "step": 0.1
+        }
+      }
+    ],
+    "shaderSource": "// LÖVE Shader Kit — Wave\n// SPDX-License-Identifier: MIT\n\nextern vec2 texelSize;\nextern float time;\nextern float amplitude;\nextern float frequency;\nextern float speed;\n\nvec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)\n{\n    vec2 displacement;\n    displacement.x = sin(textureCoords.y * frequency + time * speed);\n    displacement.y = cos(textureCoords.x * frequency * 0.73 + time * speed * 0.81);\n    vec2 uv = textureCoords + displacement * texelSize * amplitude;\n\n    if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {\n        return vec4(0.0);\n    }\n    return Texel(tex, uv) * color;\n}\n",
+    "usageSource": "-- Assume `image` is a loaded love.graphics.Image.\n\nlocal shader = love.graphics.newShader(\"shaders/wave/shader.glsl\")\n\nlocal function updateShader()\n    shader:send(\"texelSize\", {1 / image:getWidth(), 1 / image:getHeight()})\n    shader:send(\"time\", love.timer.getTime())\n    shader:send(\"amplitude\", 3.0)\n    shader:send(\"frequency\", 18.0)\n    shader:send(\"speed\", 2.2)\nend\n\nfunction love.draw()\n    updateShader()\n    love.graphics.setShader(shader)\n    love.graphics.draw(image, 100, 100)\n    love.graphics.setShader()\nend\n",
+    "preview": "assets/previews/wave.png"
+  }
+]

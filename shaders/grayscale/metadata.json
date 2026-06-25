@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "grayscale",
+  "name": "Grayscale",
+  "summary": "Blends a texture or scene toward perceptual grayscale.",
+  "description": "Uses Rec. 709 luminance weights and an adjustable blend amount. It is useful for pause states, disabled UI, flashbacks, and selective mood changes.",
+  "category": "color",
+  "target": "screen",
+  "tags": [
+    "color",
+    "grayscale",
+    "desaturate",
+    "post-process"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "amount",
+      "type": "float",
+      "default": 1.0,
+      "description": "Blend amount from full color to grayscale.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05
+      }
+    }
+  ]
+}

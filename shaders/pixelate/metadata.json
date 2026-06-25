@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "pixelate",
+  "name": "Pixelate",
+  "summary": "Reduces a texture or rendered scene into configurable pixel blocks.",
+  "description": "Snaps texture coordinates to the center of larger pixel cells. Apply it to a Canvas for screen-wide transitions, low-resolution simulation, or stylized censorship.",
+  "category": "screen",
+  "target": "screen",
+  "tags": [
+    "screen",
+    "pixelate",
+    "retro",
+    "transition"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "texelSize",
+      "type": "vec2",
+      "default": [
+        0.0015625,
+        0.0027778
+      ],
+      "description": "Reciprocal width and height of the source texture.",
+      "source": "texture_texel_size"
+    },
+    {
+      "name": "pixelSize",
+      "type": "float",
+      "default": 7.0,
+      "description": "Block size in source pixels.",
+      "control": {
+        "min": 1.0,
+        "max": 48.0,
+        "step": 1.0
+      }
+    }
+  ]
+}

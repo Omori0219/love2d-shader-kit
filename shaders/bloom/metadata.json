@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "bloom",
+  "name": "Bloom",
+  "summary": "Adds a soft glow around bright areas in a single pass.",
+  "description": "Collects thresholded neighboring samples and adds them back to the source. It is intentionally compact; multi-pass downsampled bloom will be faster and smoother at larger radii.",
+  "category": "screen",
+  "target": "screen",
+  "tags": [
+    "screen",
+    "bloom",
+    "glow",
+    "post-process"
+  ],
+  "passes": 1,
+  "loveVersion": "11.5",
+  "license": "MIT",
+  "notes": [],
+  "uniforms": [
+    {
+      "name": "texelSize",
+      "type": "vec2",
+      "default": [
+        0.0015625,
+        0.0027778
+      ],
+      "description": "Reciprocal width and height of the source texture.",
+      "source": "texture_texel_size"
+    },
+    {
+      "name": "threshold",
+      "type": "float",
+      "default": 0.62,
+      "description": "Luminance threshold that contributes to the glow.",
+      "control": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.02
+      }
+    },
+    {
+      "name": "intensity",
+      "type": "float",
+      "default": 0.85,
+      "description": "Strength of the added glow.",
+      "control": {
+        "min": 0.0,
+        "max": 2.5,
+        "step": 0.05
+      }
+    },
+    {
+      "name": "radius",
+      "type": "float",
+      "default": 4.0,
+      "description": "Sampling radius in source pixels.",
+      "control": {
+        "min": 0.5,
+        "max": 16.0,
+        "step": 0.5
+      }
+    }
+  ]
+}
