@@ -20,10 +20,10 @@ vec4 effect(vec4 color, Image tex, vec2 textureCoords, vec2 screenCoords)
     float frame = floor(time * max(speed, 0.001));
     float band = floor(textureCoords.y * max(blockCount, 1.0));
     float randomValue = hash21(vec2(band, frame));
-    float active = step(1.0 - clamp(amount, 0.0, 1.0), randomValue);
-    float shift = (hash21(vec2(band + 17.0, frame + 9.0)) - 0.5) * 0.16 * amount * active;
+    float glitchBandMask = step(1.0 - clamp(amount, 0.0, 1.0), randomValue);
+    float shift = (hash21(vec2(band + 17.0, frame + 9.0)) - 0.5) * 0.16 * amount * glitchBandMask;
     vec2 shiftedUv = clamp(textureCoords + vec2(shift, 0.0), vec2(0.0), vec2(1.0));
-    vec2 channelOffset = vec2(texelSize.x * rgbOffset * (0.35 + active), 0.0);
+    vec2 channelOffset = vec2(texelSize.x * rgbOffset * (0.35 + glitchBandMask), 0.0);
 
     float red = Texel(tex, clamp(shiftedUv + channelOffset, vec2(0.0), vec2(1.0))).r;
     vec4 center = Texel(tex, shiftedUv);
